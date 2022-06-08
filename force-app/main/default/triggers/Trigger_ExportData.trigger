@@ -170,13 +170,14 @@ trigger Trigger_ExportData on ExportData__c (before insert,before update,after i
                     }
                     else
                     {
-                        exportData.addError('No records exist for this filter. Please try some different values.');
+                        exportData.addError('No records exist for this filter. Please try some different values');
                         // System.debug('No records exist for this filter.');
                     }
                 }
             }
             catch(Exception exception1)
             {
+                System.debug(exception1.getMessage());
                 exportData.addError(exception1.getMessage());
             }
         }
@@ -186,8 +187,3 @@ trigger Trigger_ExportData on ExportData__c (before insert,before update,after i
         }           
     }
 }
-
-//Total,Object Name,Link
-//Recurring Batch if Batch is running then reschedule enforce sharing,bypass sharing
-//Funnel for queue in batch Flex Queue
-//Attach in ExportData

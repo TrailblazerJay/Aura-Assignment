@@ -1,71 +1,67 @@
 ({
-	doInit : function(component, event, helper) {
+	doInit : function(component, event, helper) 
+    {
+        //Calling objectNames() of Apex Controller
 		var action=component.get("c.objectNames");
         action.setCallback(this,function(e)
         {
-            var records=e.getReturnValue();
-            /*
-            var objectMap=[];
-            for(var key in records)
-            {
-                objectMap.push({key:key,value:records[key]});
-            }
-            console.log('Objects Count-'+objectMap.size);
-            */
-            component.set('v.objNames',records);
+            var objectNameList=e.getReturnValue();
+            component.set('v.objNames',objectNameList);
         });
         $A.enqueueAction(action);
 	},
     
-    
-    inputChanged:function(component, event, helper){
-        var objName = component.find('objects').get("v.value");
+    //Sets the userId got from Lookup
+    handleUserId:function(component,event,helper)
+    {
+     	var userId=component.find("userId").get("v.value");
+        component.set("v.userId",userId);
+    },
+
+    //Object selected then populate field names in below picklists
+    objectSelected:function(component, event, helper){
         
+        var objectName=component.find('objects').get("v.value");
+        component.set('v.objectName',objectName);
+        
+        //Calling fieldNames() of Apex Controller
         var action=component.get("c.fieldNames");
-        console.log(objName);
-        action.setParams({Obj:objName});
+        action.setParams({Obj:objectName});
         action.setCallback(this,function(e)
         {
-        	var records=e.getReturnValue();
-            var fieldNameMap=[];
-            for(var key in records)
-            {
-                fieldNameMap.push({key:key,value:records[key]});
-            }
-            component.set('v.fieldNames',fieldNameMap);
+        	var fieldNameList=e.getReturnValue();
+            component.set('v.fieldNames',fieldNameList);
         });
         $A.enqueueAction(action);
     },
     
+    //Field1 Name salected
     fieldSelected1:function(component, event, helper){
-        var objName = component.find('field1').get("v.value");
-        console.log(objName);
-        component.set("v.field1Name",objName);
+        var field1Name = component.find('field1').get("v.value");
+        component.set("v.field1Name",field1Name);
     },
     
+    //Field2 Name salected
     fieldSelected2:function(component, event, helper){
-        var objName = component.find('field2').get("v.value");
-        console.log(objName);
-        component.set("v.field2Name",objName);
+        var field2Name = component.find('field2').get("v.value");
+        component.set("v.field2Name",field2Name);
     },
     
+    //Field3 Name salected
     fieldSelected3:function(component, event, helper){
-        var objName = component.find('field3').get("v.value");
-        console.log(objName);
-        component.set("v.field3Name",objName);
+        var field3Name = component.find('field3').get("v.value");
+        component.set("v.field3Name",field3Name);
     },
     
-    handleUserId:function(component,event,helper)
-    {
-     	var userId=component.find("lookupField").get("v.value");
-        console.log(userId);
-        component.set("v.userId",userId);
-    },
-    
+    //takes data from all variables and sends it to Apex Controller
     createExportData:function(component,event,helper)
     {
+        var Filters="";
+        var Fields="";
+
+        //Getting All values
      	var userId=component.get("v.userId");
-    	var objectName=component.get("v.ed.Object__c");
+    	var objectName=component.get("v.objectName");
         
     	var field1Name = component.get("v.field1Name");
 		var field2Name = component.get("v.field2Name");    
@@ -74,13 +70,10 @@
 		var field2Value = component.get("v.field2Value");    
  	   	var field3Value = component.get("v.field3Value");    
  	   
-        console.log(userId+' '+objectName);
-    	console.log(field1Name+' name '+field2Name);
-    	console.log(field1Value+' '+field2Value);
+        //Calling createExportDataRecord() of Apex Controller and passing Parameters
         var action=component.get("c.createExportDataRecord");
         
-        var Filters="";
-        var Fields="";
+        //Checking if All the fields were selected
         if(field1Name!=null && field1Name!="")
         {
             Filters+=field1Name+':'+field1Value+';';
@@ -96,47 +89,44 @@
             Filters+=field3Name+':'+field3Value;
             Fields+=field3Name;
         }
+
+        //Removing End ;
         if(Filters.endsWith(';'))
         {
             Filters=Filters.substring(0,Filters.length-1);
-            console.log(Filters);
         }
         if(Fields.endsWith(';'))
         {
             Fields=Fields.substring(0,Fields.length-1);
-            console.log(Fields);
         }
-
-        console.log(Filters);
-        console.log(Fields);    
+   
+        //Passing values to Apex Controller
         action.setParams({
             "userId":userId,
             "objectName":objectName,
             "Filters":Filters,
             "Fields":Fields,
         });
-        console.log(action);
         action.setCallback(this,function(e)
         {
         	var state = e.getReturnValue();
-        	//var state = e.getState();
-            console.log(state);
+        	
             if(state==="SUCCESS")
             {
-               var toastEvent = $A.get("e.force:showToast");
-                toastEvent.setParams({
-                    title : 'Export Data Record Created Successfully',
-                    message: state,
-                    duration:' 2000',
-                    type: 'success'
-                });
-                toastEvent.fire();
-
                 var homeEvt = $A.get("e.force:navigateToObjectHome");
                 homeEvt.setParams({
                     "scope": "ExportData__c"
                 });
                 homeEvt.fire();
+
+                var toastEvent = $A.get("e.force:showToast");
+                toastEvent.setParams({
+                    message : 'Export Data Record Created Successfully',
+                    title: state,
+                    duration:' 2000',
+                    type: 'success'
+                });
+                toastEvent.fire();
             }
             else
             {
@@ -154,6 +144,8 @@
         
         $A.enqueueAction(action);
     },
+
+    //Method to close the Model
     cancelDialog : function(component, event, helper) {
         var homeEvt = $A.get("e.force:navigateToObjectHome");
         homeEvt.setParams({

@@ -1,6 +1,6 @@
 public class DynamicPickList 
 {
-    
+    //Returns all the ObjectNames based on User 
     @AuraEnabled
     public static List<String> objectNames()
     {
@@ -11,6 +11,7 @@ public class DynamicPickList
         {
             objnames.add(str);
         }
+
         Schema.DescribeSObjectResult[] result=Schema.describeSObjects(objnames);
         for(Schema.DescribeSObjectResult res:result)
         {
@@ -19,9 +20,11 @@ public class DynamicPickList
                 mapOfObjectNames.add(res.getName());
             }
         }
+        mapOfObjectNames.sort();
         return mapOfObjectNames;
     }
 
+    //Returns all the fieldNames based on User and objectName
 	@AuraEnabled
     public static List<String> fieldNames(String Obj)
     {
@@ -29,23 +32,26 @@ public class DynamicPickList
         Map<String,Schema.SObjectField> fieldNames=Schema.getGlobalDescribe().get(Obj).getDescribe().fields.getMap();
         for(SObjectField field:fieldNames.values())
         {
-            if(field.getDescribe().isCreateable())
+            if(field.getDescribe().isAccessible())
             {
                 mapOfFieldNames.add(field.getDescribe().getName());
             }
         }
+        mapOfFieldNames.sort();
         return mapOfFieldNames;
     }
     
+    //Creates a new ExportData Record 
     @AuraEnabled
     public static String createExportDataRecord(String userId,String objectName,String Filters,String Fields)
     {
         try
         {
-            List<ExportData__c> edList=new List<ExportData__c>();
-            edList.add(new ExportData__c(User__c=userId,Object__c=objectName,Filters__c=Filters,Fields__c=Fields));
-            //ExportData__c ed=new ExportData__c(User__c='0055j0000044VNvAAM',Object__c='Account',Filters__c='CreatedDate:THIS_YEAR',Fields__c='CreatedDate');
-            Database.SaveResult[] resultList=Database.insert(edList);
+            List<ExportData__c> exportdDataList=new List<ExportData__c>();
+            exportdDataList.add(new ExportData__c(User__c=userId,Object__c=objectName,Filters__c=Filters,Fields__c=Fields));
+            
+            Database.SaveResult[] resultList=Database.insert(exportdDataList);
+            
             for(Database.SaveResult result:resultList)
             {
                 if(result.isSuccess())
@@ -54,7 +60,11 @@ public class DynamicPickList
                 }
                 else
                 {
-                    return 'Error-'+result.getErrors();
+                    for(Database.Error error:result.getErrors())
+                    {
+                        System.debug(error.getMessage());
+                        return error.getMessage();
+                    }
                 }
             }
             return NULL;
@@ -62,7 +72,7 @@ public class DynamicPickList
         catch(Exception exception1)
         {
             System.debug('Exception Occured'+exception1.getMessage());
-            return 'Exception Occured'+exception1.getMessage();
+            return 'Exception Occured-'+exception1.getMessage();
         }
     }
 }
