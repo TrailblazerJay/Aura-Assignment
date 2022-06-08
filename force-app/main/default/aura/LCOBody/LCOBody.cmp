@@ -1,0 +1,8 @@
+<aura:component >
+    <aura:attribute name="lname" type="String"/>
+    <p>{!v.lname}</p>
+    <lightning:button label="Java" onclick="{!c.java}"/>
+    <lightning:button label="Python" onclick="{!c.python}"/>
+    <lightning:button label="Javascript" onclick="{!c.javascript}"/>
+    <lightning:button label="Apex" onclick="{!c.apex}"/>
+</aura:component>

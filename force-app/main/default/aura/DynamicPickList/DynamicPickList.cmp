@@ -1,0 +1,68 @@
+<aura:component controller="DynamicPickList" implements="lightning:actionOverride,flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <aura:attribute name="objNames" type="string[]"/>
+    <aura:attribute name="fieldNames" type="string[]"/>
+    <aura:attribute name="userId" type="String"/>
+    <aura:attribute name="objectName" type="String"/>
+    
+    <aura:attribute name="field1Name" type="String"/>
+    <aura:attribute name="field2Name" type="String"/>
+    <aura:attribute name="field3Name" type="String"/>
+    
+    <aura:attribute name="field1Value" type="String"/>
+    <aura:attribute name="field2Value" type="String"/>
+    <aura:attribute name="field3Value" type="String"/>
+    
+    <aura:attribute name="ed" type="ExportData__c" default="{'sobjectType':'ExportData__c','User__c':'','Object__c':'','Fields':'','Filters':''}"/>
+    
+    <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open">
+    <div class="slds-modal__container">
+         	<div class="slds-modal__header">
+            	<h2 class="slds-text-heading--medium">Create new ExportData Record</h2>
+            </div>
+            <div class="slds-modal__content slds-p-around--medium slds-grid slds-wrap ">
+            	<lightning:recordEditForm objectApiName="ExportData__c" class="slds-size--1-of-1 slds-p-horizontal_x-small">
+                	<lightning:inputField aura:id="lookupField" fieldName="User__c" onchange="{!c.handleUserId}" />
+                            </lightning:recordEditForm>
+                            
+                            <lightning:select label="Objects" aura:id="objects" value="{!v.ed.Object__c}" onchange="{!c.inputChanged}" class="slds-size--1-of-1 slds-p-horizontal_x-small">
+                                <option value="">--None--</option>
+                                <aura:iteration items="{!v.objNames}" var="i">
+                                     <option value="{!i}" text="{!i}" selected="{!i==v.ed.Object__c}"/>
+                                </aura:iteration>
+                            </lightning:select>
+                            
+                            <lightning:select label="Field1" value="v.field1Name" aura:id="field1" onchange="{!c.fieldSelected1}" class="slds-size--1-of-2 slds-p-horizontal_x-small">
+                                <option value="">--None--</option>
+                                <aura:iteration items="{!v.fieldNames}" var="i" indexVar="key">
+                                    <option value="{!i.value}" text="{!i.value}" selected="{!i.value==v.field1Name}"/>
+                                </aura:iteration>
+                            </lightning:select>
+                            <lightning:input aura:id="field1Value" value="{!v.field1Value}" type="text" label="Field 1 Value" name="Field1Value" class="slds-size--1-of-2 slds-p-horizontal_x-small"/>
+                            
+                            <lightning:select label="Field2" value="v.field2Name" aura:id="field2" onchange="{!c.fieldSelected2}" class="slds-size--1-of-2 slds-p-horizontal_x-small">
+                                <option value="">--None--</option>
+                                <aura:iteration items="{!v.fieldNames}" var="i" indexVar="key">
+                                    <option value="{!i.value}" text="{!i.value}" selected="{!i.value==v.field2Name}"/>
+                                </aura:iteration>
+                            </lightning:select>
+                            <lightning:input aura:id="field2Value" value="{!v.field2Value}" type="text" label="Field 2 Value" name="Field2Value" class="slds-size--1-of-2 slds-p-horizontal_x-small"/>
+                
+                			<lightning:select label="Field3" value="v.field3Name" aura:id="field3" onchange="{!c.fieldSelected3}" class="slds-size--1-of-2 slds-p-horizontal_x-small">
+                                <option value="">--None--</option>
+                                <aura:iteration items="{!v.fieldNames}" var="i" indexVar="key">
+                                    <option value="{!i.value}" text="{!i.value}" selected="{!i.value==v.field3Name}"/>
+                                </aura:iteration>
+                            </lightning:select>
+                            <lightning:input aura:id="field3Value" value="{!v.field3Value}" type="text" label="Field 3 Value" name="Field3Value" class="slds-size--1-of-2 slds-p-horizontal_x-small"/>
+                </div>
+                <div class="slds-modal__footer">                
+                    <lightning:button variant="neutral" label="Cancel" onclick="{!c.cancelDialog}" />
+                    <lightning:button variant="brand" label="Create ExportData" onclick="{!c.createExportData}"/>
+                </div>        
+        	</div>
+    </section>
+	<div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</aura:component>

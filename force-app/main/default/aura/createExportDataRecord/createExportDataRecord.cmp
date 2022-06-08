@@ -1,0 +1,18 @@
+<aura:component>
+    <aura:attribute name="exportData" type="ExportData__c"/>
+    <aura:attribute name="fields"
+                    type="String[]"
+                    default="['Enforce_sharing__c','Also_include_deleted_records__c','User__c', 'Object__c','Filters__c','Fields__c']"/>
+	<lightning:layout>
+    	<lightning:layoutItem padding="around-small" size="6">
+        	<div aria-labelledby="exportdataform">
+            	<fieldset class="slds-box slds-theme_default slds-container_small">
+                	<legend id="exportdataform" class="slds-text-heading_small slds-p-vertical_medium">Add ExportData</legend>
+                        <lightning:recordForm objectApiName="ExportData__c" fields="{!v.fields}"/>
+                    
+                </fieldset>
+            </div>
+        </lightning:layoutItem>
+        
+    </lightning:layout>
+</aura:component>

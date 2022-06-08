@@ -1,0 +1,6 @@
+({
+    func: function(component, item) 
+    {
+        
+    }
+})

@@ -1,0 +1,27 @@
+<aura:component>
+    <aura:attribute name="items" type="Camping_Item__c[]"/>
+    <aura:attribute name="newItem" type="Camping_Item__c" default="{ 'sobjectType': 'Camping_Item__c','Name': '','Quantity__c': 0,'Price__c': 0,'Packed__c': false }"/>
+        <lightning:layout>
+            <lightning:layoutItem padding="around-small" size="6">
+                <div aria-labelledby="newitemform">
+                    <fieldset class="slds-box slds-theme_default slds-container_small">
+                        <legend id="newitemform" class="slds-text-heading_small slds-p-vertical_medium">Add Item</legend>
+                        <form class="slds-form_stacked">
+                            <lightning:input aura:id="itemform" label="Item Name" name="itemname" value="{!v.newItem.Name}" required="true"/>
+                            <lightning:input type="number" aura:id="itemform" label="Price" name="itemprice" min="1" formatter="currency" step="1" value="{!v.newItem.Price__c}" messageWhenRangeUnderflow="Enter an price that's at least $1."/>
+                            <lightning:input type="number" aura:id="itemform" label="Quantity" name="itemquantity" min="1" step="1" value="{!v.newItem.Quantity__c}" messageWhenRangeUnderflow="Enter an price that's at least $1."/>
+                            <lightning:input type="checkbox" aura:id="itemform" label="Packed?" name="itempacked" checked="{!v.newItem.Packed__c}"/>
+                            <lightning:button label="Create Item" class="slds-m-top_medium" variant="brand" onclick="{!c.clickCreateItem}"/>
+                        </form>
+                    </fieldset>
+                </div>
+            </lightning:layoutItem>
+    	</lightning:layout>
+    <lightning:card title="Items">
+        <p class="slds-p-horizontal_small">
+            <aura:iteration items="{!v.items}" var="item">
+                <c:campingListItem item="{!item}"/>
+            </aura:iteration>
+        </p>
+    </lightning:card>
+</aura:component>
