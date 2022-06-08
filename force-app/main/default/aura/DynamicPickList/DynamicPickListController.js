@@ -94,9 +94,19 @@
         if(field3Name!=null && field3Name!="")
         {
             Filters+=field3Name+':'+field3Value;
-            Fields+=field1Name;
+            Fields+=field3Name;
         }
-        
+        if(Filters.endsWith(';'))
+        {
+            Filters=Filters.substring(0,Filters.length-1);
+            console.log(Filters);
+        }
+        if(Fields.endsWith(';'))
+        {
+            Fields=Fields.substring(0,Fields.length-1);
+            console.log(Fields);
+        }
+
         console.log(Filters);
         console.log(Fields);    
         action.setParams({
@@ -121,7 +131,13 @@
                     type: 'success'
                 });
                 toastEvent.fire();
-                    }
+
+                var homeEvt = $A.get("e.force:navigateToObjectHome");
+                homeEvt.setParams({
+                    "scope": "ExportData__c"
+                });
+                homeEvt.fire();
+            }
             else
             {
                 var toastEvent = $A.get("e.force:showToast");
@@ -132,7 +148,7 @@
                     type: 'error'
                 });
                 toastEvent.fire();
-                    }
+                }
             }
             );
         

@@ -1,4 +1,4 @@
-public with sharing class DynamicPickList 
+public class DynamicPickList 
 {
     
     @AuraEnabled
@@ -29,7 +29,7 @@ public with sharing class DynamicPickList
         Map<String,Schema.SObjectField> fieldNames=Schema.getGlobalDescribe().get(Obj).getDescribe().fields.getMap();
         for(SObjectField field:fieldNames.values())
         {
-            if(field.getDescribe().isAccessible())
+            if(field.getDescribe().isCreateable())
             {
                 mapOfFieldNames.add(field.getDescribe().getName());
             }
