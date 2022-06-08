@@ -2,8 +2,8 @@
     
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
     
-    <aura:attribute name="objNames" type="string[]"/>
-    <aura:attribute name="fieldNames" type="string[]"/>
+    <aura:attribute name="objNames" type="string[]" access="private"/>
+    <aura:attribute name="fieldNames" type="string[]" access="private"/>
     <aura:attribute name="userId" type="String"/>
     <aura:attribute name="objectName" type="String"/>
     

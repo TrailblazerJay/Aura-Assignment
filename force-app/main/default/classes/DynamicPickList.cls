@@ -1,57 +1,41 @@
 public with sharing class DynamicPickList 
 {
+    
     @AuraEnabled
     public static List<String> objectNames()
     {
-        List<String> strList=new List<String>();
-        List<ObjectPermissions> objList=[SELECT Id, SobjectType FROM ObjectPermissions where PermissionsCreate=TRUE AND  PermissionsRead=TRUE AND PermissionsEdit=TRUE AND PermissionsDelete=TRUE];
-        for(ObjectPermissions obj:objList)
+        List<String> mapOfObjectNames=new List<String>();
+        List<String> objnames=new List<String>();
+        Set<String> names=Schema.getGlobalDescribe().keySet();
+        for(String str:names)
         {
-            strList.add((String)obj.SobjectType);
+            objnames.add(str);
         }
-        return strList;
-    }
-    /*
-    @AuraEnabled
-    public static Map<String,String> objectNames()
-    {
-        Map<String,String> mapOfObjectNames=new Map<String,String>();
-        Map<String,Schema.SObjectType> names=Schema.getGlobalDescribe();
-        for(String key:names.keySet())
+        Schema.DescribeSObjectResult[] result=Schema.describeSObjects(objnames);
+        for(Schema.DescribeSObjectResult res:result)
         {
-            Schema.SObjectType objectType=names.get(key);
-            Schema.DescribeSObjectResult result=objectType.getDescribe();
-            mapOfObjectNames.put(key,result.getName());
+            if(res.isAccessible())
+            {
+                mapOfObjectNames.add(res.getName());
+            }
         }
         return mapOfObjectNames;
-    }*/
-    
-    @AuraEnabled
-    public static List<String> fieldNames(String Obj)
-    {
-        List<String> listOfFieldNames=new List<String>();
-        List<AggregateResult> fieldNames=[SELECT Field FROM FieldPermissions where SobjectType=:Obj AND PermissionsRead=TRUE GROUP BY Field];
-        for(AggregateResult field:fieldNames)
-        {
-            String str=(String)field.get('Field');
-            listOfFieldNames.add(str.substringAfter('.'));
-        }
-        return listOfFieldNames;
     }
 
-	// @AuraEnabled
-    // public static Map<String,String> fieldNames(String Obj)
-    // {
-    //     Map<String,String> mapOfFieldNames=new Map<String,String>();
-    //     Map<String,Schema.SObjectField> fieldNames=Schema.getGlobalDescribe().get(Obj).getDescribe().fields.getMap();
-    //     for(String key:fieldNames.keySet())
-    //     {
-    //         Schema.SObjectField field=fieldNames.get(key);
-    //         Schema.DescribeFieldResult result=field.getDescribe();
-    //         mapOfFieldNames.put(key,result.getName());
-    //     }
-    //     return mapOfFieldNames;
-    // }
+	@AuraEnabled
+    public static List<String> fieldNames(String Obj)
+    {
+        List<String> mapOfFieldNames=new List<String>();
+        Map<String,Schema.SObjectField> fieldNames=Schema.getGlobalDescribe().get(Obj).getDescribe().fields.getMap();
+        for(SObjectField field:fieldNames.values())
+        {
+            if(field.getDescribe().isAccessible())
+            {
+                mapOfFieldNames.add(field.getDescribe().getName());
+            }
+        }
+        return mapOfFieldNames;
+    }
     
     @AuraEnabled
     public static String createExportDataRecord(String userId,String objectName,String Filters,String Fields)
