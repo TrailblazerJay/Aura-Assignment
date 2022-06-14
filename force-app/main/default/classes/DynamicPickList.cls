@@ -1,28 +1,5 @@
 public class DynamicPickList 
 {
-    //Returns all the ObjectNames based on User 
-    // @AuraEnabled(cacheable=true)
-    // public static Map<String,String> objectNames()
-    // {
-    //     Map<String,String> mapOfObjectNames=new Map<String,String>();
-    //     List<String> objnames=new List<String>();
-    //     Set<String> names=Schema.getGlobalDescribe().keySet();
-    //     for(String str:names)
-    //     {
-    //         objnames.add(str);
-    //     }
-
-    //     Schema.DescribeSObjectResult[] result=Schema.describeSObjects(objnames);
-    //     for(Schema.DescribeSObjectResult res:result)
-    //     {
-    //         if(res.isAccessible())
-    //         {
-    //             mapOfObjectNames.put(res.getName(),res.getName());
-    //         }
-    //     }
-    //     return mapOfObjectNames;
-    // }
-
     @AuraEnabled(cacheable=true)
     public static List<String> objectNames()
     {
