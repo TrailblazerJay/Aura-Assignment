@@ -1,4 +1,4 @@
-global class EmailSobjectBatch implements Database.Batchable<SObject>,Database.Stateful
+global without sharing class EmailSobjectBatch implements Database.Batchable<SObject>,Database.Stateful
 {
     public List<ExportData__c> externalDataRecords=new List<ExportData__c>();
     public String externalDataCSV='';
@@ -122,8 +122,8 @@ global class EmailSobjectBatch implements Database.Batchable<SObject>,Database.S
                 query+='ALL ROWS';
             }
             
-            query=query.replaceFirst('CreatedDate', 'format(CreatedDate)');
-            query=query.replaceFirst('LastModifiedDate', 'format(LastModifiedDate)');
+            // query=query.replaceFirst('CreatedDate', 'format(CreatedDate)');
+            // query=query.replaceFirst('LastModifiedDate', 'format(LastModifiedDate)');
             if(query.endsWith(' AND '))
             {
                 query=query.removeEnd(' AND ');
@@ -133,13 +133,13 @@ global class EmailSobjectBatch implements Database.Batchable<SObject>,Database.S
             List<SObject> listSObject=new List<SObject>();
             try
             {
-                if(externalDataRecords[0].Enforce_sharing__c)
-                {
-                    EnforceSharing es=new EnforceSharing();
-                    listSObject=es.withSharing(query);  
-                    countOfRecords=listSObject.size();
-                }
-                else
+                // if(externalDataRecords[0].Enforce_sharing__c)
+                // {
+                //     EnforceSharing es=new EnforceSharing();
+                //     listSObject=es.withSharing(query);  
+                //     countOfRecords=listSObject.size();
+                // }
+                if(!externalDataRecords[0].Enforce_sharing__c)
                 {
                     BypassSharing bs=new BypassSharing();
                     listSObject=bs.withSharing(query);
@@ -181,7 +181,7 @@ global class EmailSobjectBatch implements Database.Batchable<SObject>,Database.S
             }
         }
         else
-        {
+        {   
             System.debug('Empty Scope');
         }
     }
@@ -226,27 +226,36 @@ global class EmailSobjectBatch implements Database.Batchable<SObject>,Database.S
                 msg.setBody('Here are the '+externalDataRecords[0].Object__c+' Records as per\n\nThese filters - '+filter+'\n\nAnd Fields - '+fieldNames+'\n\nTotal Records - '+countOfRecords+'\n\nLink - '+URL.getSalesforceBaseUrl().toExternalForm() + '/' + externalDataRecords[0].Id);
                 msg.setNotificationTypeId(notificationType.Id);
                 msg.setTargetId(externalDataRecords[0].Id);
-                User[] users=[Select Id from User where ProfileId IN ('00e5j000002VF3iAAG','00e5j000000xoISAAY')];
+                // User[] users=[Select Id from User where ProfileId IN ('00e5j000002VF3iAAG','00e5j000000xoISAAY')];
                 Set<String> setIds=new Set<String>();
                 setIds.add(user1.Id);
                 System.debug(setIds);
                 msg.send(setIds);   
 
-                // Attachment naa=new Attachment(OwnerId=user1.Id,ParentId=externalDataRecords[0].Id,Body=Blob.valueOf(externalDataCSV),Name=externalDataRecords[0].Object__c+' Records as per Filters.csv',ContentType='text/csv');
-                // insert naa;
+                Attachment naa=new Attachment(OwnerId=user1.Id,ParentId=externalDataRecords[0].Id,Body=Blob.valueOf(externalDataCSV),Name=externalDataRecords[0].Object__c+' Records as per Filters.csv',ContentType='text/csv');
+                insert naa;
 
-                ContentVersion cv = new ContentVersion(PathOnClient=externalDataRecords[0].Object__c+' Records as per Filters.csv',Title=externalDataRecords[0].Object__c+' Records as per Filters',OwnerId=user1.Id,VersionData=Blob.valueOf(externalDataCSV));               
-                insert cv;
-                System.debug(cv);
+                // ContentVersion cv = new ContentVersion(
+                //     FirstPublishLocationId='0585j00000056HDAAY',
+                //     PathOnClient=externalDataRecords[0].Object__c+' Records as per Filters.csv',
+                //     Title=externalDataRecords[0].Object__c+' Records as per Filters',
+                //     VersionData=Blob.valueOf(externalDataCSV), 
+                //     IsMajorVersion= true
+                // );               
+                // insert cv;
+                // System.debug(cv);
 
-                Id contentDocId = [SELECT ContentDocumentId FROM ContentVersion WHERE Id =:cv.Id].ContentDocumentId;
-                System.debug(contentDocId);
-                ContentDocumentLink cdv=new ContentDocumentLink(LinkedEntityId=externalDataRecords[0].Id,ContentDocumentId=contentDocId);
-                insert cdv;
-                System.debug(cdv);
+                //Id contentDocId = [SELECT ContentDocumentId FROM ContentVersion WHERE Id =:cv.Id].ContentDocumentId;
+                //System.debug(contentDocId);
+                //ContentDocumentLink cdv=new ContentDocumentLink(LinkedEntityId=externalDataRecords[0].Id,ContentDocumentId=contentDocId,shareType = 'V' );
+                //insert cdv;
+                //System.debug(cdv);
+                // LinkDocumentBatch ldb=new LinkDocumentBatch(cv.Id,externalDataRecords[0].Id);
+                // Database.executeBatch(ldb);
             }
             catch(Exception e)
             {
+                System.debug(e.getStackTraceString());
                 System.debug(e.getMessage());
             }
         }

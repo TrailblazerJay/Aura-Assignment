@@ -130,10 +130,11 @@
             }
             else
             {
+                var newState=state.split(', ')
                 var toastEvent = $A.get("e.force:showToast");
                 toastEvent.setParams({
                     title : 'Error',
-                    message: state,
+                    message: newState[1],
                     duration:' 5000',
                     type: 'error'
                 });
