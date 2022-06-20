@@ -2,7 +2,7 @@ import createExportDataRecord from '@salesforce/apex/DynamicPickList.createExpor
 import fieldNames from '@salesforce/apex/DynamicPickList.fieldNames';
 import objectNames from '@salesforce/apex/DynamicPickList.objectNames';
 import { LightningElement ,api, wire, track} from 'lwc';
-
+import {ShowToastEvent} from 'lightning/platformShowToastEvent';
 export default class CreateExportDataComponent extends LightningElement 
 {
     error="";
@@ -137,6 +137,16 @@ export default class CreateExportDataComponent extends LightningElement
         createExportDataRecord({userId:this.userId,objectName:this.objectName,Filters:Filters,Fields:Fields})
         .then((res)=>{
             alert(res);
+            showToast()
+            {
+                const event=ShowToastEvent({
+                    meessage:res,
+                    title:'SUCCESS',
+                    variant:'success',
+                    mode:'dismissable'
+                })
+            }
+            this.dispatchEvent(event);
         })
     }
 }

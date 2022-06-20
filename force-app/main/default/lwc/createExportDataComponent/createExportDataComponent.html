@@ -1,5 +1,6 @@
 <template>
-    <div style="width: 40%;margin-left:30%;">
+    <lightning-card title="Create ExportData" icon-name="custom:custom15">
+    <div style="width: 80%;margin-left:10%;">
         <h1 style="font-size:30px ;">Create ExportData</h1>
     
         <lightning-record-edit-form object-api-name="ExportData__c" >
@@ -9,18 +10,19 @@
         <lightning-combobox label="Object Name" value={objectName} options={options} onchange={onObjectSelected}>
         </lightning-combobox>
 
-        <lightning-combobox label="Field 1 Name" value={field1Name} options={fieldOptions} onchange={onField1Selected}>
+        <lightning-combobox label="Field 1 Name" value={field1Name} placeholder="Select Field1" options={fieldOptions} onchange={onField1Selected}>
         </lightning-combobox>
-        <lightning-input type="text" value={field1Value} onchange={field1ValueChanged}></lightning-input>
+        <lightning-input type="text" value={field1Value} placeholder="Enter Field 1 Value" onchange={field1ValueChanged}></lightning-input>
 
-        <lightning-combobox label="Field 2 Name" value={field2Name} options={fieldOptions} onchange={onField2Selected}>
+        <lightning-combobox label="Field 2 Name" value={field2Name} placeholder="Select Field2" options={fieldOptions} onchange={onField2Selected}>
         </lightning-combobox>
-        <lightning-input type="text" value={field2Value} onchange={field2ValueChanged}></lightning-input>
+        <lightning-input type="text" value={field2Value} placeholder="Enter Field 2 Value" onchange={field2ValueChanged}></lightning-input>
         
-        <lightning-combobox label="Field 3 Name" value={field3Name} options={fieldOptions} onchange={onField3Selected}>
+        <lightning-combobox label="Field 3 Name" value={field3Name} placeholder="Select Field3" options={fieldOptions} onchange={onField3Selected}>
         </lightning-combobox>
-        <lightning-input type="text" value={field3Value} onchange={field3ValueChanged}></lightning-input></br>
+        <lightning-input type="text" value={field3Value} placeholder="Enter Field 3 Value"  onchange={field3ValueChanged}></lightning-input></br>
 
         <lightning-button label="Create ExportData" type="submit" variant="brand" onclick={formSubmitted}></lightning-button>
     </div>
+    </lightning-card>
 </template>
