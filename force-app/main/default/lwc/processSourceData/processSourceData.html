@@ -6,7 +6,9 @@
                     <div>
                         <lightning-radio-group name="radioGroupPractice" options={practiceOptions} value={practiceRadioValue} type="radio" onchange={practiceRadioChanged}></lightning-radio-group></br>
                         <template if:false={practiceValue}>
-                            <c-custom-lookup aria-required="true" obj-name="Practice__c" search-placeholder="Search Practices" icon-name="standard:account" onlookupselected={handlePracticeSelection}> </c-custom-lookup>
+                            <lightning-record-edit-form object-api-name="Referral__c" >
+                                <lightning-input-field field-name="Practice__c" value={practiceId} onchange={handlePracticeSelection}></lightning-input-field>
+                            </lightning-record-edit-form>
                         </template>
                     </div>
                 </lightning-accordion-section>
@@ -17,7 +19,9 @@
                     <div>
                         <lightning-radio-group name="radioGroupReferrer" options={referrerOptions} value={referrerRadioValue} type="radio" onchange={referrerRadioChanged}></lightning-radio-group></br>
                         <template if:false={referrerValue}>
-                            <c-custom-lookup aria-required="true" obj-name="Referrer__c" search-placeholder="Search Referrers" icon-name="standard:account" onlookupselected={handleReferrerSelection}> </c-custom-lookup></br>  
+                            <lightning-record-edit-form object-api-name="Referral__c" >
+                                <lightning-input-field field-name="Referrer__c" value={referrerId} onchange={handleReferrerSelection}></lightning-input-field>
+                            </lightning-record-edit-form>                        
                         </template>
                     </div>
                 </lightning-accordion-section>

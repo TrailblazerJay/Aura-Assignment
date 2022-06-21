@@ -1,24 +1,5 @@
 public class processSourceDataLWC
 {
-
-    @AuraEnabled(cacheable=true)
-    public static List<sObject> search(String searchTerm, string myObject, String filter) {
-        String myQuery = null;
-        if(filter != null && filter != ''){
-            myQuery = 'Select Id, Name from '+myObject+' Where Name Like  \'%' + searchTerm + '%\' AND '+filter+' LIMIT  5';
-        }
-        else {
-            if(searchTerm == null || searchTerm == ''){
-                myQuery = 'Select Id, Name from '+myObject+' Where LastViewedDate != NULL ORDER BY LastViewedDate DESC LIMIT  5';
-            }
-            else {
-                myQuery = 'Select Id, Name from '+myObject+' Where Name Like  \'%' + searchTerm + '%\' LIMIT  5';
-            }
-        }
-        List<sObject> lookUpList = database.query(myQuery);
-        return lookUpList;
-    }
-
     //It takes External_Code as input and returns Practice Record else Creates a new Practice Record
     public static Practice__c createPractice(Source_Data__c sourceData)
     {
@@ -73,41 +54,51 @@ public class processSourceDataLWC
         }
     }
     
-    @AuraEnabled
-    public static String getDuplicatePracticeNReferrer(String externalCode,String orgName, String fName, String lName)
+    @AuraEnabled(cacheable=true)
+    public static String getDuplicatePracticeNReferrer(String sourceDataId)
     {
-        List< Practice__c > practiceList = new List< Practice__c >(); 
-        
-        practiceList.add(new Practice__c(
-            Name = orgName,
-            Organisation_Name__c = orgName,
-            External_Code__c = externalCode
-        ));
-        
-        //fetching Duplicate if it exists
-        Practice__c[] duplicatePracticeList = getDuplicates(practiceList);
-        
-        List< Referrer__c > referrerList = new List< Referrer__c >();
-        
-        referrerList.add(new Referrer__c( 
-            First_Name__c = fName,
-            Name = lName,
-            External_Code__c = externalCode
-        ));
-        
-        //fetching Duplicate if it exists
-        Referrer__c[] duplicateReferrerList = getDuplicates(referrerList);
-
+        String msg='Demo';
         try
         {
-            System.debug(duplicatePracticeList[0].Id+' '+duplicateReferrerList);
-            return duplicatePracticeList[0].Id+' '+duplicateReferrerList;
+            Source_Data__c sd=[Select Id,Name,Organisation_Name__c,First_Name__c,Last_Name__c from Source_Data__c where Id=:sourceDataId];
+
+            List< Practice__c > practiceList = new List< Practice__c >(); 
+            
+            practiceList.add(new Practice__c(
+                Name = sd.Organisation_Name__c,
+                Organisation_Name__c = sd.Organisation_Name__c,
+                External_Code__c = sd.Name
+            ));
+            
+            //fetching Duplicate if it exists
+            Practice__c[] duplicatePracticeList = getDuplicates(practiceList);
+            
+            List< Referrer__c > referrerList = new List< Referrer__c >();
+            
+            referrerList.add(new Referrer__c( 
+                First_Name__c = sd.First_Name__c,
+                Name = sd.Last_Name__c,
+                External_Code__c = sd.Name
+            ));
+            
+            //fetching Duplicate if it exists
+            Referrer__c[] duplicateReferrerList = getDuplicates(referrerList);
+    
+            if(duplicatePracticeList[0].Id!=NULL && duplicateReferrerList[0].Id!=NULL)
+            {
+                msg=duplicatePracticeList[0].Id+' '+duplicateReferrerList[0].Id;
+            }
+            else
+            {
+                msg='No Duplicates Found';
+            }
         }
         catch(Exception e)
         {
             System.debug(e.getMessage());
-            return e.getMessage();
+            msg = e.getMessage();
         }
+        return msg;
     }
 
     //It takes External_Code as input and returns Referrer Record else Creates a new Referrer Record
@@ -226,122 +217,103 @@ public class processSourceDataLWC
     
     //It takes External,Practice,Referrer as input and fetches Provider Record else Creates a new Provider Record
     @AuraEnabled
-    public static String createProvider( Id practiceId, Id referrerId, String description, String externalCode)
+    public static String createProviderandProfileCode(Id practiceId, Id referrerId, Id sourceDataId)
     {
+        Source_Data__c sd=[Select Id,Name,Description__c,Organisation_Name__c,First_Name__c,Last_Name__c from Source_Data__c where Id=:sourceDataId];
+
         List<Provider__c> providerList = new List<Provider__c>();
 
         providerList.add(new Provider__c(
             Practice__c = practiceId,
             Referrer__c = referrerId,
-            Description__c = description,
-            External_Code__c = externalCode
+            Description__c = sd.Description__c,
+            External_Code__c = sd.Name
         ));
         
-        //Checking for duplicates
-        Provider__c[] duplicatePracticeList = getDuplicates(providerList);
+        //Checking for duplicate junction
+        Provider__c[] duplicateProviderList=[Select Id,Name from Provider__c where Practice__c=:practiceId AND Referrer__c=:referrerId];
 
-        if(duplicatePracticeList.size() == 0 )
-        {                     
+        if(duplicateProviderList.size() == 0)
+        {   
+            String msg='';
             try
             {
                 insert providerList[0];
                 System.debug('Provider Created');
 
-                try
+                Profile_Code__c[] duplicateProfileCodeList=[Select Id,Name from Profile_Code__c where External_Code__c=:sd.Name];
+                
+                if(duplicateProfileCodeList.size() == 0)
                 {
-                //Creating related Profile Code
+                    //Creating related Profile Code
                     Profile_Code__c profileCode = new Profile_Code__c(
                         Practice__c = practiceId,
                         Referrer__c = referrerId,
                         Provider__c = providerList[0].Id,
-                        Description__c = description,
-                        External_Code__c = externalCode
+                        Description__c = sd.Description__c,
+                        External_Code__c = sd.Name
                     );
                     
                     insert profileCode;
-                    //System.debug('Profile Code Created');
+                    msg = 'Provider & Profile Created Successfully';
+                    System.debug('Provider & Profile Created Successfully');
                 }
-                catch(Exception exception1)
+                else
                 {
-                    System.debug('Exception occured while creating new Profile_Code__c');
-                    System.debug('Message-'+exception1.getMessage());
+                    msg = 'Provider Created Successfully & Profile Code Already exists';
                 }
-                return 'New Provider and Profile Code Created';
             }
             catch(Exception exception1)
             {
                 System.debug('Exception occured while creating new Provider__c');
                 System.debug('Message-'+exception1.getMessage());
-                return exception1.getMessage();
+                msg = exception1.getMessage();
             }
-        }
-        
+            return msg;
+        }       
         else    
         {
-            String msg='';
-
-            Provider__c providerRecord = [
-                Select 
-                    Id,
-                    External_Code__c 
-                from Provider__c 
-                where Id = :duplicatePracticeList[0].Id
-            ];
-
-            if(providerRecord.External_Code__c != externalCode)
+            String msg = '';
+            
+            Profile_Code__c[] duplicateProfileCodeList = [Select Id,Name from Profile_Code__c where External_Code__c=:sd.Name];
+                
+            if(duplicateProfileCodeList.size() == 0)
             {
-                Provider__c newProvider = new Provider__c(
-                    Practice__c = practiceId,
-                    Referrer__c = referrerId,
-                    Description__c = description,
-                    External_Code__c = externalCode
-                );
-                try
-                {
-                    insert newProvider;
-                    System.debug('Provider Created');
-                }
-                catch(Exception exception1)
-                {
-                    System.debug('Exception occured while creating new Provider__c');
-                    System.debug('Message-'+exception1.getMessage());
-                    msg= exception1.getMessage();
-                }
-
                 Profile_Code__c profileCode = new Profile_Code__c(
                     Practice__c = practiceId,
                     Referrer__c = referrerId,
-                    Provider__c = newProvider.Id,
-                    Description__c = description,
-                    External_Code__c = externalCode
+                    Provider__c = duplicateProviderList[0].Id,
+                    Description__c = sd.Description__c,
+                    External_Code__c = sd.Name
                 );
                 
                 try
                 {
                     insert profileCode;
-                    msg= 'new Provider Created and Attached to Profile Code';
+                    msg = 'Provider Already Exists and Profile Code Created Successfully';
                 }
                 catch(Exception exception1)
                 {
                     System.debug('Exception occured while creating new Profile_Code__c');
                     System.debug('Message-'+exception1.getMessage());
+                    msg = exception1.getMessage();
                 }
             }
             else
             {
-                msg = 'Provider Cannot be Created\nDuplicate Data with Same External Code Exists';
-                System.debug('Provider Cannot be Created\nDuplicate Data with Same External Code Exists');
+                msg = 'Provider & Profile Code Already exists';
+                System.debug('Provider & Profile Code Already exists');
             }
+            // else
+            // {
+            //     System.debug('Provider Updated');
+            //     Provider__c provider2=provider[0];
+            //     provider2.Description__c=external.Description__c;
+            //     provider2.Practice_Name__c=getPractice(external.Provider_Code__c);
+            //     update provider2;
+            //     return provider2;
+            // }
             return msg;
         }
-        //else
-        //{
-        //    System.debug('Provider Updated');
-        //	Provider__c provider2=provider[0];
-        //    provider2.Description__c=external.Description__c;
-        //    provider2.Practice_Name__c=getPractice(external.Provider_Code__c);
-        //    update provider2;
-        //    return provider2;
-        //}
 	}
 }
