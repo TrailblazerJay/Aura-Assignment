@@ -1,63 +1,26 @@
 public class processSourceDataLWC
 {
     //It takes External_Code as input and returns Practice Record else Creates a new Practice Record
-    public static Practice__c createPractice(Source_Data__c sourceData)
+    public static String createPractice(Practice__c[] practiceList)
     {
-        List< Practice__c > practiceList = new List< Practice__c >(); 
-        
-        practiceList.add(new Practice__c(
-            Name = sourceData.Organisation_Name__c,
-            Organisation_Name__c = sourceData.Organisation_Name__c,
-            External_Code__c = sourceData.Name
-        ));
-        
-        //fetching Duplicate if it exists
-        Practice__c[] duplicatePracticeList = getDuplicates(practiceList);
-        
-        //If no duplicate found then create new Practice
-        if( duplicatePracticeList.size() == 0 )
-    	{
-            try
-            {                    
-                insert practiceList;
-                System.debug('Practice Created');
-                return practiceList[0];
-            }
-            catch(Exception exception1)
-            {
-                System.debug('Exception occured while creating new Practice__c');
-                System.debug('Message-'+exception1.getMessage());
-                return NULL;
-            }
-    	}
-        //Else update the duplicate practice record with new data 
-        else
+        try
+        {                    
+            insert practiceList;
+            System.debug('Practice Created');
+            return practiceList[0].Id;
+        }
+        catch(Exception exception1)
         {
-            Practice__c updatePractice = new Practice__c(
-                Id = duplicatePracticeList[0].Id,
-                Name = sourceData.Organisation_Name__c,
-                Organisation_Name__c = sourceData.Organisation_Name__c
-            );
-
-            try
-            {
-               	update updatePractice;
-                System.debug('Practice Updated');
-                return updatePractice;
-            }
-            catch(Exception exception1)
-            {
-                System.debug('Exception occured while updating Practice__c');
-                System.debug('Message-'+exception1.getMessage());
-                return NULL;
-            }
+            System.debug('Exception occured while creating new Practice__c');
+            System.debug('Message-'+exception1.getMessage());
+            return NULL;
         }
     }
     
     @AuraEnabled(cacheable=true)
-    public static String getDuplicatePracticeNReferrer(String sourceDataId)
+    public static String[] getDuplicatePracticeNReferrer(String sourceDataId)
     {
-        String msg='Demo';
+        String[] msg=new String[3];
         try
         {
             Source_Data__c sd=[Select Id,Name,Organisation_Name__c,First_Name__c,Last_Name__c from Source_Data__c where Id=:sourceDataId];
@@ -73,9 +36,9 @@ public class processSourceDataLWC
             //fetching Duplicate if it exists
             Practice__c[] duplicatePracticeList = getDuplicates(practiceList);
             
-            List< Referrer__c > referrerList = new List< Referrer__c >();
+            List<Referrer__c> referrerList = new List<Referrer__c>();
             
-            referrerList.add(new Referrer__c( 
+            referrerList.add(new Referrer__c(
                 First_Name__c = sd.First_Name__c,
                 Name = sd.Last_Name__c,
                 External_Code__c = sd.Name
@@ -83,76 +46,47 @@ public class processSourceDataLWC
             
             //fetching Duplicate if it exists
             Referrer__c[] duplicateReferrerList = getDuplicates(referrerList);
-    
-            if(duplicatePracticeList[0].Id!=NULL && duplicateReferrerList[0].Id!=NULL)
+            
+            if(duplicatePracticeList.size()>0)
             {
-                msg=duplicatePracticeList[0].Id+' '+duplicateReferrerList[0].Id;
+                msg[0] = duplicatePracticeList[0].Id;
             }
             else
             {
-                msg='No Duplicates Found';
+                msg[0] = 'No Data';
             }
+            if(duplicateReferrerList.size()>0)
+            {
+                msg[1] = duplicateReferrerList[0].Id;
+            }
+            else
+            {
+                msg[1] = 'No Data';
+            }
+            msg[2] = 'No Error';
         }
         catch(Exception e)
         {
             System.debug(e.getMessage());
-            msg = e.getMessage();
+            msg[2] = e.getMessage();
         }
         return msg;
     }
 
     //It takes External_Code as input and returns Referrer Record else Creates a new Referrer Record
-    public static Referrer__c createReferrer(Source_Data__c sourceData)
+    public static String createReferrer(Referrer__c[] referrerList)
     {
-     	List< Referrer__c > referrerList = new List< Referrer__c >();
-        
-        referrerList.add(new Referrer__c( 
-            First_Name__c = sourceData.First_Name__c,
-            Name = sourceData.Last_Name__c,
-            External_Code__c = sourceData.Name
-        ));
-        
-        //fetching Duplicate if it exists
-        Referrer__c[] duplicateReferrerList = getDuplicates(referrerList);
-        
-        //If no duplicate found then create new Practice
-        if( duplicateReferrerList.size() == 0 )
-    	{                     
-            try
-            {
-                insert referrerList;            
-                System.debug('Referrer Created');
-                return referrerList[0];
-            }
-            catch(Exception exception1)
-            {
-                System.debug('Exception occured while creating new Referrer__c');
-                System.debug('Message-'+exception1.getMessage());
-                return NULL;
-            }
-        }
-
-        //Else update the duplicate practice record with new data 
-        else
+        try
         {
-            Referrer__c updateReferrer = new Referrer__c(
-                Id = duplicateReferrerList[0].Id,
-                First_Name__c = sourceData.First_Name__c,
-                Name = sourceData.Last_Name__c
-            );
-        	
-            try
-            {
-                update updateReferrer;
-                System.debug('Referrer Updated');
-                return updateReferrer;
-            }
-            catch(Exception exception1)
-            {
-                System.debug('Exception occured while updating Referrer__c');
-                System.debug('Message-'+exception1.getMessage());
-                return NULL;
-            }
+            insert referrerList;            
+            System.debug('Referrer Created');
+            return referrerList[0].Id;
+        }
+        catch(Exception exception1)
+        {
+            System.debug('Exception occured while creating new Referrer__c');
+            System.debug('Message-'+exception1.getMessage());
+            return NULL;
         }
     }
 
@@ -219,9 +153,33 @@ public class processSourceDataLWC
     @AuraEnabled
     public static String createProviderandProfileCode(Id practiceId, Id referrerId, Id sourceDataId)
     {
-        Source_Data__c sd=[Select Id,Name,Description__c,Organisation_Name__c,First_Name__c,Last_Name__c from Source_Data__c where Id=:sourceDataId];
+        Source_Data__c sd=[Select Id,Name,Description__c,Organisation_Name__c,First_Name__c,Last_Name__c,Provider_Code__c from Source_Data__c where Id=:sourceDataId];
 
         List<Provider__c> providerList = new List<Provider__c>();
+
+        if(practiceId==NULL)
+        {    
+            List< Practice__c > practiceList = new List< Practice__c >(); 
+            
+            practiceList.add(new Practice__c(
+                Name = sd.Organisation_Name__c,
+                Organisation_Name__c = sd.Organisation_Name__c,
+                External_Code__c = sd.Name
+            ));
+            practiceId=createPractice(practiceList);
+        }
+
+        if(referrerId==NULL)
+        {    
+            List<Referrer__c> referrerList = new List<Referrer__c>(); 
+            
+            referrerList.add(new Referrer__c(
+                First_Name__c = sd.First_Name__c,
+                Name = sd.Last_Name__c,
+                External_Code__c = sd.Name
+            ));
+            referrerId=createReferrer(ReferrerList);
+        }
 
         providerList.add(new Provider__c(
             Practice__c = practiceId,
@@ -304,15 +262,6 @@ public class processSourceDataLWC
                 msg = 'Provider & Profile Code Already exists';
                 System.debug('Provider & Profile Code Already exists');
             }
-            // else
-            // {
-            //     System.debug('Provider Updated');
-            //     Provider__c provider2=provider[0];
-            //     provider2.Description__c=external.Description__c;
-            //     provider2.Practice_Name__c=getPractice(external.Provider_Code__c);
-            //     update provider2;
-            //     return provider2;
-            // }
             return msg;
         }
 	}

@@ -4,10 +4,10 @@
             <lightning-accordion active-section-name="Practice" allow-multiple-sections-open>
                 <lightning-accordion-section name="Practice" label="Practice">
                     <div>
-                        <lightning-radio-group name="radioGroupPractice" options={practiceOptions} value={practiceRadioValue} type="radio" onchange={practiceRadioChanged}></lightning-radio-group></br>
+                        <lightning-radio-group name="radioGroupPractice" options={practiceOptions} value={practiceRadioValue} type="radio" onchange={practiceRadioChanged} disabled={practiceDisabled}></lightning-radio-group></br>
                         <template if:false={practiceValue}>
                             <lightning-record-edit-form object-api-name="Referral__c" >
-                                <lightning-input-field field-name="Practice__c" value={practiceId} onchange={handlePracticeSelection}></lightning-input-field>
+                                <lightning-input-field field-name="Practice__c" value={practiceId} onchange={handlePracticeSelection} disabled={practiceLookupDisabled}></lightning-input-field>
                             </lightning-record-edit-form>
                         </template>
                     </div>
@@ -17,10 +17,10 @@
             <lightning-accordion active-section-name="Referrer" allow-multiple-sections-open>
                 <lightning-accordion-section name="Referrer" label="Referrer">
                     <div>
-                        <lightning-radio-group name="radioGroupReferrer" options={referrerOptions} value={referrerRadioValue} type="radio" onchange={referrerRadioChanged}></lightning-radio-group></br>
+                        <lightning-radio-group name="radioGroupReferrer" options={referrerOptions} value={referrerRadioValue} type="radio" onchange={referrerRadioChanged} disabled={referrerDisabled}></lightning-radio-group></br>
                         <template if:false={referrerValue}>
                             <lightning-record-edit-form object-api-name="Referral__c" >
-                                <lightning-input-field field-name="Referrer__c" value={referrerId} onchange={handleReferrerSelection}></lightning-input-field>
+                                <lightning-input-field field-name="Referrer__c" value={referrerId} onchange={handleReferrerSelection} disabled={referrerLookupDisabled}></lightning-input-field>
                             </lightning-record-edit-form>                        
                         </template>
                     </div>

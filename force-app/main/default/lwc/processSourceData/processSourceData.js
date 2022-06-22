@@ -14,7 +14,10 @@ export default class ProcessSourceData extends LightningElement
     referrerRadioValue;
     practiceValue=false;
     referrerValue=false;
-    value="";
+    practiceDisabled=false;
+    referrerDisabled=false;
+    practiceLookupDisabled=false;
+    referrerLookupDisabled=false;
 
     // @wire(getRecord,{recordId:"$recordId",fields:[
     //     'Source_Data__c.Id',
@@ -36,6 +39,7 @@ export default class ProcessSourceData extends LightningElement
         if(data)
         {
             this.handleData(data);
+            console.log('Data-'+data);
         }
         else
         {
@@ -47,25 +51,51 @@ export default class ProcessSourceData extends LightningElement
     {
         if(data)
         {
-            this.value=data.split(" ");
-            console.log(this.value);
-            console.log('data');
-            this.practiceId=this.value[0];
-            this.referrerId=this.value[1];
-            
+            if(data[2]=="No Error")
+            {
+                if(data[0]!="No Data")
+                {
+                    this.practiceId=data[0];
+                    this.practiceDisabled=true;
+                    this.practiceLookupDisabled=true;
+                }
+                // else
+                // {
+                //     this.practiceId=NULL;
+                // }
+                if(data[1]!="No Data")
+                {
+                    this.referrerId=data[1];
+                    this.referrerDisabled=true;
+                    this.referrerLookupDisabled=true;
+                }
+                // else
+                // {
+                //     this.referrerId=NULL;
+                // }
+            }
+            else
+            {
+                this.dispatchEvent(new ShowToastEvent({
+                    title: "Warning",
+                    message: data[2],
+                    variant: 'warning'
+                }));
+            }
         }
     }
 
     practiceRadioChanged(event)
     {
-        alert(this.practiceId+' '+this.referrerId);
         if(event.target.value=="existing")
         {
             this.practiceValue=false;
+            this.practiceLookupDisabled=false;
         }
         else if(event.target.value=="new")
         {
             this.practiceValue=true;
+            this.practiceLookupDisabled=true;
         }
     }
 
@@ -74,9 +104,11 @@ export default class ProcessSourceData extends LightningElement
         if(event.target.value=="existing")
         {
             this.referrerValue=false;
+            this.referrerLookupDisabled=false;
         }
         else if(event.target.value=="new")
         {
+            this.referrerLookupDisabled=true;
             this.referrerValue=true;
         }
     }
@@ -107,7 +139,6 @@ export default class ProcessSourceData extends LightningElement
     {
         createProviderandProfileCode({practiceId:this.practiceId,referrerId:this.referrerId,sourceDataId:this.recordId})
         .then((result)=>{
-            alert(JSON.stringify(result));
             this.dispatchEvent(new CloseActionScreenEvent());
             this.dispatchEvent(new ShowToastEvent({
                 title: result,
