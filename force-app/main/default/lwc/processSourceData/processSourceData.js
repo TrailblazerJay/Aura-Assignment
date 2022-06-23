@@ -9,29 +9,18 @@ export default class ProcessSourceData extends LightningElement
     @api practiceId;
     @api referrerId;
     @api recordId;
+    @api isLoaded=false;
 
-    practiceRadioValue;
-    referrerRadioValue;
-    practiceValue=false;
-    referrerValue=false;
+    practiceRadioValue="new";
+    referrerRadioValue="new";
+    practiceValue=true;
+    referrerValue=true;
     practiceDisabled=false;
     referrerDisabled=false;
     practiceLookupDisabled=false;
     referrerLookupDisabled=false;
-
-    // @wire(getRecord,{recordId:"$recordId",fields:[
-    //     'Source_Data__c.Id',
-    //     'Source_Data__c.Name',
-    //     'Source_Data__c.Description__c',
-    //     'Source_Data__c.Organisation_Name__c',
-    //     'Source_Data__c.First_Name__c',
-    //     'Source_Data__c.Last_Name__c'
-    // ]})
-    // getSourceData({data,error})
-    // {
-    //     this.sourceData=data;
-    //     console.log(data.fields.Name.value);  
-    // }
+    practiceMessage='';
+    referrerMessage='';
 
     @wire(getDuplicatePracticeNReferrer,{sourceDataId:"$recordId"})
     getPracticeNReferrer({error,data})
@@ -39,7 +28,6 @@ export default class ProcessSourceData extends LightningElement
         if(data)
         {
             this.handleData(data);
-            console.log('Data-'+data);
         }
         else
         {
@@ -58,28 +46,31 @@ export default class ProcessSourceData extends LightningElement
                     this.practiceId=data[0];
                     this.practiceDisabled=true;
                     this.practiceLookupDisabled=true;
+                    this.practiceRadioValue="existing";
+                    this.practiceValue=false;
+                    this.practiceMessage="This practice already exists.";
+                    this.practiceLink="https://jay-atlas-dev-ed.my.salesforce.com/"+data[0];
                 }
-                // else
-                // {
-                //     this.practiceId=NULL;
-                // }
                 if(data[1]!="No Data")
                 {
                     this.referrerId=data[1];
                     this.referrerDisabled=true;
                     this.referrerLookupDisabled=true;
+                    this.referrerRadioValue="existing";
+                    this.referrerValue=false;
+                    this.referrerMessage="This referrer already exists.";
+                    this.referrerLink="https://jay-atlas-dev-ed.my.salesforce.com/"+data[1];
                 }
-                // else
-                // {
-                //     this.referrerId=NULL;
-                // }
+                this.isLoaded=true;
             }
             else
             {
+                this.isLoaded=true;
+                this.dispatchEvent(new CloseActionScreenEvent());
                 this.dispatchEvent(new ShowToastEvent({
-                    title: "Warning",
+                    title: "Info",
                     message: data[2],
-                    variant: 'warning'
+                    variant: 'info'
                 }));
             }
         }
@@ -148,7 +139,11 @@ export default class ProcessSourceData extends LightningElement
         })
         .catch(err=>{
             console.log(err);
-            alert(err);
+            this.dispatchEvent(new ShowToastEvent({
+                title: "Exception",
+                message: err.body.message+"\n"+this.practiceId+"\n"+this.referrerId,
+                variant: 'error'
+            }));
         })
     }
 

@@ -1,36 +1,43 @@
 <template>
     <lightning-quick-action-panel header="Process Source Data">
-        <div>
+        <div if:false={isLoaded} class="slds-is-relative">
+            <lightning-spinner alternative-text="loading..."></lightning-spinner>
+        </div>
+        <div if:true={isLoaded}>
             <lightning-accordion active-section-name="Practice" allow-multiple-sections-open>
                 <lightning-accordion-section name="Practice" label="Practice">
                     <div>
-                        <lightning-radio-group name="radioGroupPractice" options={practiceOptions} value={practiceRadioValue} type="radio" onchange={practiceRadioChanged} disabled={practiceDisabled}></lightning-radio-group></br>
+                        <lightning-radio-group name="radioGroupPractice" options={practiceOptions} value={practiceRadioValue} type="radio" onchange={practiceRadioChanged} disabled={practiceDisabled}></lightning-radio-group>
                         <template if:false={practiceValue}>
                             <lightning-record-edit-form object-api-name="Referral__c" >
-                                <lightning-input-field field-name="Practice__c" value={practiceId} onchange={handlePracticeSelection} disabled={practiceLookupDisabled}></lightning-input-field>
+                                <lightning-input-field field-name="Practice__c" value={practiceId} onchange={handlePracticeSelection} disabled={practiceLookupDisabled} required></lightning-input-field>
                             </lightning-record-edit-form>
+                            <template if:true={practiceMessage}>
+                                {practiceMessage}<a href={practiceLink} target="_blank"> Click here to view.</a>
+                            </template>
                         </template>
                     </div>
                 </lightning-accordion-section>
             </lightning-accordion>
-            
             <lightning-accordion active-section-name="Referrer" allow-multiple-sections-open>
                 <lightning-accordion-section name="Referrer" label="Referrer">
                     <div>
-                        <lightning-radio-group name="radioGroupReferrer" options={referrerOptions} value={referrerRadioValue} type="radio" onchange={referrerRadioChanged} disabled={referrerDisabled}></lightning-radio-group></br>
+                        <lightning-radio-group name="radioGroupReferrer" options={referrerOptions} value={referrerRadioValue} type="radio" onchange={referrerRadioChanged} disabled={referrerDisabled}></lightning-radio-group>
                         <template if:false={referrerValue}>
                             <lightning-record-edit-form object-api-name="Referral__c" >
-                                <lightning-input-field field-name="Referrer__c" value={referrerId} onchange={handleReferrerSelection} disabled={referrerLookupDisabled}></lightning-input-field>
-                            </lightning-record-edit-form>                        
+                                <lightning-input-field field-name="Referrer__c" value={referrerId} onchange={handleReferrerSelection} disabled={referrerLookupDisabled} required></lightning-input-field>
+                            </lightning-record-edit-form>
+                            <template if:true={referrerMessage}>
+                                {referrerMessage}<a href={referrerLink} target="_blank"> Click here to view.</a>
+                            </template>
                         </template>
                     </div>
                 </lightning-accordion-section>
             </lightning-accordion>
-            
-            <div style="margin-left: 75%;">
-                <lightning-button type="cancel" variant="neural" onclick={handleCancel} label="Cancel"></lightning-button>
-                <lightning-button type="submit" class="slds-m-left_x-small" variant="brand" label="Process" onclick={handleSubmit}></lightning-button>
-            </div>
+        </div>
+        <div slot="footer">
+            <lightning-button variant="neural" onclick={handleCancel} label="Cancel"></lightning-button>
+            <lightning-button type="submit" class="slds-m-left_x-small" variant="brand" label="Process" onclick={handleSubmit}></lightning-button>
         </div>
     </lightning-quick-action-panel>
 </template>
