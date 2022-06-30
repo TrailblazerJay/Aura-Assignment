@@ -1,0 +1,8 @@
+<template>
+    <lightning-card title="Basic Pagination using Custom Event" icon-name="custom:custom9">
+        <div class="s   lds-m-around_medium">
+            <p class="slds-m-vertical_medium content">Page {page}</p>
+            <c-pagination-component onprevious={previousHandler} onnext={nextHandler}></c-pagination-component>
+        </div>
+    </lightning-card>
+</template>

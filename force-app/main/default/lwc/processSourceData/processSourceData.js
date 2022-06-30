@@ -132,7 +132,7 @@ export default class ProcessSourceData extends LightningElement
         .then((result)=>{
             this.dispatchEvent(new CloseActionScreenEvent());
             this.dispatchEvent(new ShowToastEvent({
-                title: result,
+                title: "SUCCESS",
                 message: result,
                 variant: 'success'
             }));

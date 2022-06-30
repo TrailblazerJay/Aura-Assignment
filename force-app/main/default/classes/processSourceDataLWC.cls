@@ -223,6 +223,7 @@ public class processSourceDataLWC
                 catch(Exception exception1)
                 {
                     msg=exception1.getMessage();
+                    return msg;
                 }
 
                 try
@@ -250,6 +251,7 @@ public class processSourceDataLWC
                 {
                     msg=exception1.getMessage();
                     Database.rollback(practiceSavepoint);
+                    return msg;
                 }
 
                 providerList.add(new Provider__c(
