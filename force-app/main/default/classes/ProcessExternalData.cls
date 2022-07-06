@@ -1,7 +1,7 @@
 public class ProcessExternalData
 {
  	//It takes External_Code as input and returns Record  
-    public Source_Data__c getSourceDataRecord( Id sourceDataId )
+    public static Source_Data__c getSourceDataRecord(Id sourceDataId)
     {
         Source_Data__c[] sourceData=[
             Select 
@@ -29,7 +29,7 @@ public class ProcessExternalData
     }
 
     //It takes External_Code as input and returns Practice Record else Creates a new Practice Record
-    public Practice__c createPractice(Source_Data__c sourceData)
+    public static Practice__c createPractice(Source_Data__c sourceData)
     {
         List< Practice__c > practiceList = new List< Practice__c >(); 
         
@@ -83,7 +83,7 @@ public class ProcessExternalData
     }
     
     //It takes External_Code as input and returns Referrer Record else Creates a new Referrer Record
-    public Referrer__c createReferrer(Source_Data__c sourceData)
+    public static Referrer__c createReferrer(Source_Data__c sourceData)
     {
      	List< Referrer__c > referrerList = new List< Referrer__c >();
         
@@ -138,7 +138,7 @@ public class ProcessExternalData
     }
     
     //It takes Provider_Code as input and returns Practice based on Provider_Code
-    public String getPractice(String providerCode)
+    public static String getPractice(String providerCode)
     {
         String practice;
         if( providerCode.length() == 8 )
@@ -174,7 +174,7 @@ public class ProcessExternalData
     }
         
     //It takes RecordList as input and returns Duplicate list if found else empty list    
-    public List<SObject> getDuplicates(List<SObject> recordValue)
+    public static List<SObject> getDuplicates(List<SObject> recordValue)
     {
         List<SObject> duplicateRecord = new List<SObject>();
         try
@@ -197,7 +197,7 @@ public class ProcessExternalData
     }
     
     //It takes External,Practice,Referrer as input and fetches Provider Record else Creates a new Provider Record
-    public Provider__c createProvider( Id practiceId, Id referrerId, Source_Data__c sourceDataRecord)
+    public static Provider__c createProvider( Id practiceId, Id referrerId, Source_Data__c sourceDataRecord)
     {
         List< Provider__c > providerList = new List< Provider__c >();
 
@@ -314,7 +314,7 @@ public class ProcessExternalData
 	}
     
     //4a Takes recordId and updates Total Revenue & Referral Count fields of Referrer or Pratice
-    public void updateTotalRevenueAndReferralCount(String recordId)
+    public static void updateTotalRevenueAndReferralCount(String recordId)
     {
         Schema.DescribeSObjectResult[] describeObject = Schema.describeSObjects(new String[]{'Practice__c','Referrer__c'});
         

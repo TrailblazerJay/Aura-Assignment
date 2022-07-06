@@ -181,7 +181,7 @@ global without sharing class EmailSobjectBatch implements Database.Batchable<SOb
             }
         }
         else
-        {   
+        {
             System.debug('Empty Scope');
         }
     }
