@@ -12,7 +12,9 @@ public class ProcessExternalData
                 Organisation_Name__c,
                 Description__c,
                 Provider_Code__c,
-                Processing_Status__c
+                Processing_Status__c,
+                Email__c,
+                Referrer_Email__C
             FROM Source_Data__c
             where Id = :sourceDataId
         ];
@@ -36,7 +38,8 @@ public class ProcessExternalData
         practiceList.add(new Practice__c(
             Name = sourceData.Organisation_Name__c,
             Organisation_Name__c = sourceData.Organisation_Name__c,
-            External_Code__c = sourceData.Name
+            External_Code__c = sourceData.Name,
+            Email__c = sourceData.Email__c
         ));
         
         //fetching Duplicate if it exists
@@ -64,7 +67,8 @@ public class ProcessExternalData
             Practice__c updatePractice = new Practice__c(
                 Id = duplicatePracticeList[0].Id,
                 Name = sourceData.Organisation_Name__c,
-                Organisation_Name__c = sourceData.Organisation_Name__c
+                Organisation_Name__c = sourceData.Organisation_Name__c,
+                Email__c = sourceData.Email__c
             );
 
             try
@@ -76,7 +80,7 @@ public class ProcessExternalData
             catch(Exception exception1)
             {
                 System.debug('Exception occured while updating Practice__c');
-                System.debug('Message-'+exception1.getMessage());
+                System.debug('Message1-'+exception1.getMessage());
                 return NULL;
             }
         }
@@ -90,7 +94,8 @@ public class ProcessExternalData
         referrerList.add(new Referrer__c( 
             First_Name__c = sourceData.First_Name__c,
             Name = sourceData.Last_Name__c,
-            External_Code__c = sourceData.Name
+            External_Code__c = sourceData.Name,
+            Email__c = sourceData.Referrer_Email__c
         ));
         
         //fetching Duplicate if it exists
@@ -119,7 +124,8 @@ public class ProcessExternalData
             Referrer__c updateReferrer = new Referrer__c(
                 Id = duplicateReferrerList[0].Id,
                 First_Name__c = sourceData.First_Name__c,
-                Name = sourceData.Last_Name__c
+                Name = sourceData.Last_Name__c,
+                Email__c = sourceData.Referrer_Email__c
             );
         	
             try
@@ -192,6 +198,7 @@ public class ProcessExternalData
         catch(Exception exception1)
         {
             System.debug('Error-'+exception1.getMessage());
+            return NULL;
         }
         return duplicateRecord;
     }
@@ -209,7 +216,7 @@ public class ProcessExternalData
         ));
         
         //Checking for duplicates
-        Provider__c[] duplicatePracticeList = getDuplicates(providerList);
+        Provider__c[] duplicatePracticeList = [Select Id,Practice__c,Referrer__c from Provider__c where Practice__c=:practiceId AND Referrer__c=:referrerId];
 
         if(duplicatePracticeList.size() == 0 )
         {                     
@@ -217,26 +224,19 @@ public class ProcessExternalData
             {
                 insert providerList[0];	
                 System.debug('Provider Created');
-
-                try
-                {
+                
                 //Creating related Profile Code
-                    Profile_Code__c profileCode = new Profile_Code__c(
-                        Practice__c = practiceId,
-                        Referrer__c = referrerId,
-                        Provider__c = providerList[0].Id,
-                        Description__c = sourceDataRecord.Description__c,
-                        External_Code__c = sourceDataRecord.Name
-                    );
+                Profile_Code__c profileCode = new Profile_Code__c(
+                    Practice__c = practiceId,
+                    Referrer__c = referrerId,
+                    Provider__c = providerList[0].Id,
+                    Description__c = sourceDataRecord.Description__c,
+                    External_Code__c = sourceDataRecord.Name
+                );
                     
-                    insert profileCode;
-                    //System.debug('Profile Code Created');
-                }
-                catch(Exception exception1)
-                {
-                    System.debug('Exception occured while creating new Profile_Code__c');
-                    System.debug('Message-'+exception1.getMessage());
-                }
+                insert profileCode;
+                //System.debug('Profile Code Created');
+                
                 return providerList[0];
             }
             catch(Exception exception1)
@@ -268,6 +268,17 @@ public class ProcessExternalData
                 {
                     insert newProvider;
                     System.debug('Provider Created');
+
+                    Profile_Code__c profileCode = new Profile_Code__c(
+                        Practice__c = practiceId,
+                        Referrer__c = referrerId,
+                        Provider__c = newProvider.Id,
+                        Description__c = sourceDataRecord.Description__c,
+                        External_Code__c = sourceDataRecord.Name        
+                    );
+
+                    insert profileCode;
+                    return newProvider;        
                 }
                 catch(Exception exception1)
                 {
@@ -275,30 +286,11 @@ public class ProcessExternalData
                     System.debug('Message-'+exception1.getMessage());
                     return NULL;
                 }
-
-                Profile_Code__c profileCode = new Profile_Code__c(
-                    Practice__c = practiceId,
-                    Referrer__c = referrerId,
-                    Provider__c = newProvider.Id,
-                    Description__c = sourceDataRecord.Description__c,
-                    External_Code__c = sourceDataRecord.Name
-                );
-                
-                try
-                {
-                    insert profileCode;
-                    return newProvider;
-                }
-                catch(Exception exception1)
-                {
-                    System.debug('Exception occured while creating new Profile_Code__c');
-                    System.debug('Message-'+exception1.getMessage());
-                }
             }
-
-            else
+            else if(providerRecord.External_Code__c == sourceDataRecord.Name)
             {
                 System.debug('Provider Cannot be Created\nDuplicate Data with Same External Code Exists');
+                return NULL;
             }
             return NULL;
         }
@@ -314,7 +306,7 @@ public class ProcessExternalData
 	}
     
     //4a Takes recordId and updates Total Revenue & Referral Count fields of Referrer or Pratice
-    public static void updateTotalRevenueAndReferralCount(String recordId)
+    public static String updateTotalRevenueAndReferralCount(String recordId)
     {
         Schema.DescribeSObjectResult[] describeObject = Schema.describeSObjects(new String[]{'Practice__c','Referrer__c'});
         
@@ -347,10 +339,12 @@ public class ProcessExternalData
             {
                 update referrer;
                 System.debug('Referrer Updated');   
+                return 'Referrer Updated';   
             }
             catch(DMLException dmlException)
             {
                 System.debug('Error-'+dmlException.getMessage());
+                return 'Error-'+dmlException.getMessage();
             }
         }
 
@@ -384,16 +378,19 @@ public class ProcessExternalData
             {
                 update practice;
                 System.debug('Practice Updated');
+                return 'Practice Updated';
             }
             catch(DMLException dmlException)
             {
                 System.debug('Error-'+dmlException.getMessage());
+                return 'Error-'+dmlException.getMessage();
             }
         }
+        return NULL;
 	}
     
     //4b Takes recordId and updates Total Revenue & Referral Count fields of Referrer or Pratice
-    public void updateTotalRevenueAndReferralCounts( List<Id> recordIds )
+    public static String updateTotalRevenueAndReferralCounts( List<Id> recordIds )
     {
         Schema.DescribeSObjectResult[] describeObject = Schema.describeSObjects(new String[]{'Practice__c','Referrer__c'});
         if(String.valueOf(recordIds[0].getSObjectType()) == describeObject[0].getName())
@@ -433,7 +430,7 @@ public class ProcessExternalData
                     practiceMapList.put( (Id) aggregateResultPractice.get('Practice__c'),
                         new Practice__c(
                             Id= (Id) aggregateResultPractice.get('Practice__c'),
-                            Count_Referral__c= (Decimal) aggregateResultPractice.get('expr0')
+                            Total_Revenue__c= (Decimal) aggregateResultPractice.get('expr0')
                         )
                     );
                 }
@@ -443,10 +440,12 @@ public class ProcessExternalData
             {
                 update practiceMapList.values();
                 System.debug('Revenue & Referral Count Updated for Practice__c');
+                return 'Revenue & Referral Count Updated for Practice__c';
             }
             catch(Exception exception1)
             {
                 System.debug('Message-'+exception1.getMessage());
+                return 'Message-'+exception1.getMessage();
             }
         }
         else if(String.valueOf(recordIds[0].getSObjectType()) == describeObject[1].getName())
@@ -484,7 +483,7 @@ public class ProcessExternalData
                     referrerMapList.put( (Id) aggregateResultReferrer.get('Referrer__c'),
                         new Referrer__c( 
                             Id = (Id) aggregateResultReferrer.get('Referrer__c'),
-                            Count_Referral__c = (Decimal) aggregateResultReferrer.get('expr0')
+                            Total_Revenue__c = (Decimal) aggregateResultReferrer.get('expr0')
                         )
                     );
                 }
@@ -494,21 +493,24 @@ public class ProcessExternalData
             {
                 update referrerMapList.values();
                 System.debug('Revenue & Referral Count Updated for Referrer__c');
+                return 'Revenue & Referral Count Updated for Referrer__c';
             }
             catch(Exception exception1)
             {
                 System.debug('Message-'+exception1.getMessage());
+                return 'Message-'+exception1.getMessage();
             }
         }
+        return NULL;
 	}
     
-    public void Main(Id sourceDataId)
+    public static String Main(Id sourceDataId)
     {
         Source_Data__c sourceDataRecord = getSourceDataRecord(sourceDataId);
         if(sourceDataRecord.Processing_Status__c != 'Processed')
         {
             if(sourceDataRecord == NULL){
-                return;
+                return 'No Source Data';
             }
             
             String practiceId = getPractice(sourceDataRecord.Provider_Code__c);
@@ -517,39 +519,40 @@ public class ProcessExternalData
             {
                 Practice__c practiceData = createPractice(sourceDataRecord);
                 if(practiceData == NULL){
-                    return;
+                    return 'No Practice';
                 }
                 practiceId = practiceData.Id;
             }
             
             Referrer__c referrer = createReferrer(sourceDataRecord);
             if(referrer == NULL){
-                return;
+                return 'No Referrer';
             }
 
             Provider__c provider = createProvider(practiceId, referrer.Id, sourceDataRecord);       
             if(provider == NULL){
-                return;
+                return 'No Provider';
             }
 
             sourceDataRecord.Processing_Status__c = 'Processed';
             try
             {
                 update sourceDataRecord;
+                return 'Provider Created';
             }
             catch(Exception e)
             {
                 System.debug('External Updation Failed');
                 System.debug(e.getMessage());
+                return 'Message-'+e.getMessage();
             }
         }
         else if(sourceDataRecord.Processing_Status__c != 'Duplicate Discarded') 
         {
             System.debug('Duplicate Data cannot be processed');
+            return 'Duplicate Discarded';
         }
-        else 
-        {
-            System.debug('Data is Already Processed');
-        }
+        System.debug('Data is Already Processed');
+        return 'Already Processed';
     }
 }
